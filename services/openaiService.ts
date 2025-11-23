@@ -38,7 +38,8 @@ const openAIRequest = async <T>(path: string, body: unknown): Promise<T> => {
 export const generateStoryIdea = async (
   character: string,
   theme: string,
-  age: number
+  age: number,
+  modelName: string = "gpt-4o-mini"
 ): Promise<string> => {
   const charStr = character ? `mettant en scène "${character}"` : "avec un personnage animal mignon";
   const themeStr = theme ? `sur le thème "${theme}"` : "";
@@ -51,7 +52,7 @@ export const generateStoryIdea = async (
     const response = await openAIRequest<{ choices: { message?: { content?: string } }[] }>(
       "chat/completions",
       {
-        model: "gpt-4o-mini",
+        model: modelName,
         messages: [{ role: "user", content: prompt }]
       }
     );
@@ -74,7 +75,8 @@ export const generateStory = async (
   premise: string,
   style: string,
   pageCount: number,
-  age: number
+  age: number,
+  modelName: string = "gpt-4o-mini"
 ): Promise<StoryStructure> => {
   const prompt = `
     Écris une courte histoire illustrée pour enfants (${pageCount} pages) en FRANÇAIS, adaptée à un enfant de ${age} ans.
@@ -107,7 +109,7 @@ export const generateStory = async (
 
   try {
     const response = await openAIRequest<{ choices: { message?: { content?: string } }[] }>("chat/completions", {
-      model: "gpt-4o-mini",
+      model: modelName,
       response_format: { type: "json_object" },
       messages: [
         {

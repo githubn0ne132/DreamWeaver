@@ -18,7 +18,14 @@ const App: React.FC = () => {
 
     try {
       // 1. Generate Story Text
-      const storyData = await generateStory(params.character, params.story, params.style, params.pageCount, params.age);
+      const storyData = await generateStory(
+        params.character,
+        params.story,
+        params.style,
+        params.pageCount,
+        params.age,
+        params.textModel
+      );
       
       setBook(storyData);
       setAppState(AppState.GENERATING_IMAGES);
