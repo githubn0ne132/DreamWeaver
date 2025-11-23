@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { StoryParams } from '../types';
-import { generateStoryIdea } from '../services/geminiService';
+import { generateStoryIdea } from '../services/openaiService';
 
 interface Props {
   onSubmit: (params: StoryParams) => void;
@@ -13,8 +13,8 @@ const StoryGeneratorForm: React.FC<Props> = ({ onSubmit, isGenerating }) => {
   const [theme, setTheme] = useState('');
   const [story, setStory] = useState('');
   const [style, setStyle] = useState('Beatrix Potter (Aquarelle)');
-  // Default to the free/standard model
-  const [imageModel] = useState('gemini-2.5-flash-image');
+  // Default OpenAI image model
+  const [imageModel] = useState('gpt-image-1');
   const [pageCount, setPageCount] = useState(5);
   const [age, setAge] = useState(5);
   const [isGeneratingIdea, setIsGeneratingIdea] = useState(false);
