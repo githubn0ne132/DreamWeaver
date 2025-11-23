@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { AppState, StoryParams, StoryStructure, GenerationProgress } from './types';
-import { generateStory, generatePageImage } from './services/openaiService';
+import { buildCharacterSignature, generateStory, generatePageImage } from './services/openaiService';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import BookReader from './components/BookReader';
 
@@ -14,9 +14,13 @@ const App: React.FC = () => {
   const handleGenerate = async (params: StoryParams) => {
     setAppState(AppState.GENERATING_STORY);
     setError(null);
-    setProgress({ currentStep: 'Écriture de l\'histoire...', completedImages: 0, totalImages: 0 });
+    setProgress({ currentStep: 'Création de la fiche personnage...', completedImages: 0, totalImages: 0 });
 
     try {
+      // 0. Build a repeatable character signature to keep visuals consistent
+      const characterSignature = await buildCharacterSignature(params.character, params.style, params.textModel);
+      setProgress({ currentStep: 'Écriture de l\'histoire...', completedImages: 0, totalImages: 0 });
+
       // 1. Generate Story Text
       const storyData = await generateStory(
         params.character,
@@ -24,7 +28,8 @@ const App: React.FC = () => {
         params.style,
         params.pageCount,
         params.age,
-        params.textModel
+        params.textModel,
+        characterSignature
       );
       
       setBook(storyData);
@@ -39,14 +44,15 @@ const App: React.FC = () => {
 
       // 2. Generate Images sequentially
       const pagesWithImages = [...storyData.pages];
-      
+      const visualSignature = characterSignature || params.character;
+
       for (let i = 0; i < totalImages; i++) {
         const page = pagesWithImages[i];
-        
+
         // Construct detailed prompt ensuring character consistency
         const characterContext = params.character ? `Character Reference: ${params.character}.` : '';
         // Explicitly forbid human hands on animals and include other negative constraints
-        const fullPrompt = `${characterContext} Action: ${page.imagePrompt}. Art Style: ${params.style}. Constraint: If character is an animal, they must have PAWS or HOOVES, NEVER human hands, fingers, or feet. Exclude: text, words, signature, watermark, frame, border, humans, human hands, extra limbs, unnatural poses. Keep natural animal anatomy.`;
+        const fullPrompt = `${characterContext} Consistent Character Sheet: ${visualSignature}. Keep the same accessories, colors, and proportions on every page. Action: ${page.imagePrompt}. Art Style: ${params.style}. Constraint: If character is an animal, they must have PAWS or HOOVES, NEVER human hands, fingers, or feet. Exclude: text, words, signature, watermark, frame, border, humans, human hands, extra limbs, unnatural poses. Keep natural animal anatomy.`;
         
         // Pass the selected model
         const imageUrl = await generatePageImage(fullPrompt, params.imageModel);

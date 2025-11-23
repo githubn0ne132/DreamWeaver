@@ -38,6 +38,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1eCaqcu4bG-Y0t448O-vf33
 - Choose the text and image models directly in the form (defaults: `gpt-4o-mini` for text, `gpt-image-1` for images).
 - Uses the `gpt-image-1` model by default and requests base64 output; if your endpoint only returns a URL, the app will display that instead.
 - Keep your API key in a trusted environment—calls are made from the browser.
+- The app now builds a **character signature** before writing the story so the same outfit, colors, and accessories are reused on every illustrated page (and across books). Predefined characters ship with curated signatures for extra consistency.
 
 **Production build**
 
