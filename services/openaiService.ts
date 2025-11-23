@@ -38,7 +38,8 @@ const openAIRequest = async <T>(path: string, body: unknown): Promise<T> => {
 export const generateStoryIdea = async (
   character: string,
   theme: string,
-  age: number
+  age: number,
+  modelName: string = "gpt-4o-mini"
 ): Promise<string> => {
   const charStr = character ? `mettant en scène "${character}"` : "avec un personnage animal mignon";
   const themeStr = theme ? `sur le thème "${theme}"` : "";
@@ -51,7 +52,7 @@ export const generateStoryIdea = async (
     const response = await openAIRequest<{ choices: { message?: { content?: string } }[] }>(
       "chat/completions",
       {
-        model: "gpt-4o-mini",
+        model: modelName,
         messages: [{ role: "user", content: prompt }]
       }
     );
@@ -74,7 +75,8 @@ export const generateStory = async (
   premise: string,
   style: string,
   pageCount: number,
-  age: number
+  age: number,
+  modelName: string = "gpt-4o-mini"
 ): Promise<StoryStructure> => {
   const prompt = `
     Écris une courte histoire illustrée pour enfants (${pageCount} pages) en FRANÇAIS, adaptée à un enfant de ${age} ans.
@@ -107,7 +109,7 @@ export const generateStory = async (
 
   try {
     const response = await openAIRequest<{ choices: { message?: { content?: string } }[] }>("chat/completions", {
-      model: "gpt-4o-mini",
+      model: modelName,
       response_format: { type: "json_object" },
       messages: [
         {
@@ -149,7 +151,7 @@ export const generatePageImage = async (
   const enhancedPrompt = `${imagePrompt}. High quality, detailed, masterpiece. Exclude: text, words, signature, watermark, frame, border, humans, human hands, extra limbs, unnatural poses. Ensure anatomical correctness.`;
 
   try {
-    const response = await openAIRequest<{ data: { b64_json?: string }[] }>("images/generations", {
+    const response = await openAIRequest<{ data: { b64_json?: string; url?: string }[] }>("images/generations", {
       model: modelName,
       prompt: enhancedPrompt,
       size: "1024x1024",
@@ -157,10 +159,10 @@ export const generatePageImage = async (
       response_format: "b64_json"
     });
 
-    const base64 = response.data?.[0]?.b64_json;
-    if (base64) {
-      return `data:image/png;base64,${base64}`;
-    }
+    const { b64_json: base64, url } = response.data?.[0] || {};
+
+    if (base64) return `data:image/png;base64,${base64}`;
+    if (url) return url;
 
     throw new Error("No image data found in response.");
   } catch (error) {

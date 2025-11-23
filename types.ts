@@ -15,6 +15,7 @@ export interface StoryParams {
   character: string;
   story: string;
   style: string;
+  textModel: string;
   imageModel: string;
   pageCount: number;
   age: number;

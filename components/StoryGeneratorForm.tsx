@@ -13,8 +13,8 @@ const StoryGeneratorForm: React.FC<Props> = ({ onSubmit, isGenerating }) => {
   const [theme, setTheme] = useState('');
   const [story, setStory] = useState('');
   const [style, setStyle] = useState('Beatrix Potter (Aquarelle)');
-  // Default OpenAI image model
-  const [imageModel] = useState('gpt-image-1');
+  const [textModel, setTextModel] = useState('gpt-4o-mini');
+  const [imageModel, setImageModel] = useState('gpt-image-1');
   const [pageCount, setPageCount] = useState(5);
   const [age, setAge] = useState(5);
   const [isGeneratingIdea, setIsGeneratingIdea] = useState(false);
@@ -22,14 +22,14 @@ const StoryGeneratorForm: React.FC<Props> = ({ onSubmit, isGenerating }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (character && story && style) {
-      onSubmit({ character, story, style, imageModel, pageCount, age });
+      onSubmit({ character, story, style, textModel, imageModel, pageCount, age });
     }
   };
 
   const handleGenerateIdea = async () => {
     setIsGeneratingIdea(true);
     try {
-      const idea = await generateStoryIdea(character, theme, age);
+      const idea = await generateStoryIdea(character, theme, age, textModel);
       if (idea) {
         setStory(idea);
       }
@@ -72,6 +72,17 @@ const StoryGeneratorForm: React.FC<Props> = ({ onSubmit, isGenerating }) => {
     "Paper Mario (Découpage papier)",
     "Bande Dessinée Classique",
     "Cyberpunk Néon"
+  ];
+
+  const textModels = [
+    { value: "gpt-4o", label: "gpt-4o (Creative)" },
+    { value: "gpt-4o-mini", label: "gpt-4o-mini (Rapide)" },
+    { value: "gpt-3.5-turbo", label: "gpt-3.5-turbo (Économique)" }
+  ];
+
+  const imageModels = [
+    { value: "gpt-image-1", label: "GPT-Image-1 (2560x2560 max)" },
+    { value: "dall-e-3", label: "DALL·E 3 (1024x1024 max)" }
   ];
 
   return (
@@ -157,6 +168,41 @@ const StoryGeneratorForm: React.FC<Props> = ({ onSubmit, isGenerating }) => {
           />
         </div>
         
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-stone-700 mb-2">Modèle Texte</label>
+            <select
+              value={textModel}
+              onChange={(e) => setTextModel(e.target.value)}
+              disabled={isGenerating}
+              className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all"
+            >
+              {textModels.map((model) => (
+                <option key={model.value} value={model.value}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-stone-700 mb-2">Modèle Image</label>
+            <select
+              value={imageModel}
+              onChange={(e) => setImageModel(e.target.value)}
+              disabled={isGenerating}
+              className="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none transition-all"
+            >
+              {imageModels.map((model) => (
+                <option key={model.value} value={model.value}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-stone-400 mt-1">La génération peut varier selon le modèle choisi.</p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <div>
               <label className="block text-sm font-semibold text-stone-700 mb-2">
