@@ -10,11 +10,31 @@ View your app in AI Studio: https://ai.studio/apps/drive/1eCaqcu4bG-Y0t448O-vf33
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+**Prerequisites:**
 
+- Node.js 18+
+- An [OpenAI API key](https://platform.openai.com/)
+
+**Setup & Start**
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+2. Configure your environment (create `.env.local` at the project root):
+   ```bash
+   VITE_OPENAI_API_KEY=sk-...
+   # Optional: point to a proxy or Azure endpoint
+   # VITE_OPENAI_BASE_URL=https://api.openai.com/v1
+   ```
+3. Start the Vite dev server:
+   ```bash
+   npm run dev
+   ```
+4. Open the URL printed in the terminal (defaults to `http://localhost:3000`).
+
+**Production build**
+
+```bash
+npm run build
+```

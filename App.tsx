@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { AppState, StoryParams, StoryStructure, GenerationProgress } from './types';
-import { generateStory, generatePageImage } from './services/geminiService';
+import { generateStory, generatePageImage } from './services/openaiService';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import BookReader from './components/BookReader';
 
@@ -80,7 +80,7 @@ const App: React.FC = () => {
             <span className="font-serif font-bold text-xl tracking-tight">DreamWeaver</span>
           </div>
           <div className="text-xs font-medium text-stone-400 bg-stone-100 px-3 py-1 rounded-full">
-            Propulsé par Gemini
+            Propulsé par OpenAI
           </div>
         </div>
       </header>
