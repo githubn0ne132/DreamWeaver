@@ -1,4 +1,5 @@
 import { StoryStructure } from "../types";
+import { predefinedCharacterSignatures } from "./characterLibrary";
 
 const getApiKey = () => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
@@ -30,6 +31,48 @@ const openAIRequest = async <T>(path: string, body: unknown): Promise<T> => {
   }
 
   return response.json();
+};
+
+/**
+ * Builds a reusable visual signature for the main character so the model can
+ * reuse the same colors, outfit, and accessories across all illustrations.
+ *
+ * - If the character is predefined, we return a curated signature string.
+ * - Otherwise, we ask the language model to synthesize a concise, repeatable
+ *   description that can be injected into every image prompt.
+ */
+export const buildCharacterSignature = async (
+  character: string,
+  style: string,
+  modelName: string = "gpt-4o-mini"
+): Promise<string> => {
+  const trimmed = character.trim();
+
+  if (!trimmed) return "";
+
+  const predefinedSignature = predefinedCharacterSignatures[trimmed];
+  if (predefinedSignature) return predefinedSignature;
+
+  const prompt = `Create one concise, repeatable visual identity for the children's book character named "${trimmed}". Return a single sentence in English (max 60 words) that includes: species or type, dominant colors, fixed clothing and accessories, one unique prop, and an expression or posture. Note that the design must stay identical in every illustration. Keep it compatible with the ${style} art inspiration.`;
+
+  try {
+    const response = await openAIRequest<{ choices: { message?: { content?: string } }[] }>("chat/completions", {
+      model: modelName,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You craft short, factual character sheets. Return only one sentence describing a consistent visual design to be reused across multiple images."
+        },
+        { role: "user", content: prompt }
+      ]
+    });
+
+    return response.choices?.[0]?.message?.content?.trim() || `${trimmed} keeps the same outfit, colors, and accessories in every scene.`;
+  } catch (e) {
+    console.error("Error building character signature", e);
+    return `${trimmed} keeps the same outfit, colors, and accessories in every scene.`;
+  }
 };
 
 /**
@@ -76,7 +119,8 @@ export const generateStory = async (
   style: string,
   pageCount: number,
   age: number,
-  modelName: string = "gpt-4o-mini"
+  modelName: string = "gpt-4o-mini",
+  characterSignature?: string
 ): Promise<StoryStructure> => {
   const prompt = `
     Écris une courte histoire illustrée pour enfants (${pageCount} pages) en FRANÇAIS, adaptée à un enfant de ${age} ans.
@@ -86,6 +130,7 @@ export const generateStory = async (
     - Sujet de l'histoire: ${premise}
     - Inspiration artistique: ${style}
     - Âge cible: ${age} ans
+    - Profil visuel constant à respecter dans les prompts d'image: ${characterSignature || character}
 
     Instructions:
     1. Crée un titre accrocheur en Français.
@@ -101,6 +146,7 @@ export const generateStory = async (
        IMPORTANT pour l'imagePrompt:
        - Décris la scène visuellement en détail.
        - Inclus la description physique du personnage principal (${character}) dans CHAQUE prompt pour assurer la cohérence.
+       - Réutilise exactement le profil visuel fourni (${characterSignature || "profil du personnage"}) pour que le personnage reste identique d'une page à l'autre et entre les livres.
        - Spécifie le style inspiré par : "${style}".
        - AJOUTE les contraintes suivantes : "no text, no words, accurate anatomy, no human hands on animals".
 
